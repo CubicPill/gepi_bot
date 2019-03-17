@@ -28,7 +28,7 @@ def set(bot, update, args):
         update.message.reply_text('Only available in group chats')
         return
     try:
-        new_p = round(float(args[0]), 2)
+        new_p = round(float('0' + args[0]), 2)
         if new_p > 1:
             new_p = 1
         if new_p < 0:
