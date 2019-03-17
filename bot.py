@@ -38,13 +38,15 @@ def set(bot, update, args):
         return
     group_settings[update.message.chat.id] = new_p
     save_settings()
-    update.message.reply_text('Success!')
+    update.message.reply_text('Success! P = {0:.2f}'.format(new_p))
 
 
 def get(bot, update):
     if update.message.chat.type not in [Chat.GROUP, Chat.SUPERGROUP]:
         update.message.reply_text('Only available in group chats')
         return
+    if update.message.chat.id not in group_settings:
+        group_settings[update.message.chat.id] = DEFAULT_P
     update.message.reply_text(
         'Reply Possibility in current group is: {0:.2f}'.format(group_settings[update.message.chat.id]))
 
@@ -83,8 +85,7 @@ def load_settings():
     with settings_lock:
         global group_settings
         if not os.path.isfile('settings.json'):
-            with open('settings.json', 'w') as f:
-                json.dump(group_settings, f)
+            return {}
         else:
             with open('settings.json') as f:
                 group_settings = json.load(f)
@@ -102,7 +103,7 @@ def main():
     updater = Updater(bot_token)
     updater.dispatcher.add_handler(CommandHandler('test', test))
     updater.dispatcher.add_handler(CommandHandler('setp', set, pass_args=True))
-    updater.dispatcher.add_handler(CommandHandler('getp', get, pass_args=True))
+    updater.dispatcher.add_handler(CommandHandler('getp', get))
     updater.dispatcher.add_handler(MessageHandler(Filters.text & Filters.group, gepi))
     global my_uid
     my_uid = updater.bot.get_me().id
