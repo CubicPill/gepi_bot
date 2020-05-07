@@ -22,7 +22,7 @@ def test(bot, update):
 
 def set(bot, update, args):
     if len(args) != 1:
-        update.message.reply_text('Usage: /set <Reply Possibility> ([0.00~1.00])')
+        update.message.reply_text('Usage: /setp <Reply Possibility> ([0.00~1.00])')
         return
     if update.message.chat.type not in [Chat.GROUP, Chat.SUPERGROUP]:
         update.message.reply_text('Only available in group chats')
@@ -34,7 +34,7 @@ def set(bot, update, args):
         if new_p < 0:
             new_p = 0
     except ValueError:
-        update.message.reply_text('Usage: /set <Reply Possibility> ([0.00~1.00])')
+        update.message.reply_text('Usage: /setp <Reply Possibility> ([0.00~1.00])')
         return
     group_settings[update.message.chat.id] = new_p
     save_settings()
@@ -68,6 +68,11 @@ def gepi(bot, update):
                 update.message.reply_text(random.choice(keywords) + suffix_word)
             else:
                 update.message.reply_text(update.message.text + suffix_word)
+    elif update.message.forward_from:
+        if update.message.forward_from.id == my_uid:
+            # forward words of bot
+            suffix_word = random.choice(suffix_words)
+            update.message.reply_text('Forward' + suffix_word)
     elif random.random() <= group_settings[update.message.chat.id]:
         # normal mode
         suffix_word = random.choice(suffix_words)
@@ -79,6 +84,8 @@ def gepi(bot, update):
 
         if keywords:
             update.message.reply_text(random.choice(keywords) + suffix_word)
+    print(update.message.chat.id, update.message.chat.title, update.message.from_user.id,
+          update.message.from_user.full_name)
 
 
 def load_settings():
