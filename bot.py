@@ -48,7 +48,7 @@ def get(bot, update):
     if update.message.chat.id not in group_settings:
         group_settings[update.message.chat.id] = DEFAULT_P
     update.message.reply_text(
-        'Reply Possibility in current group is: {0:.2f}'.format(group_settings[update.message.chat.id]))
+        'Reply Possibility in current group is: {0:.6f}'.format(group_settings[update.message.chat.id]))
 
 
 def gepi(bot, update):
@@ -57,22 +57,29 @@ def gepi(bot, update):
     if update.message.reply_to_message:
         if update.message.reply_to_message.from_user.id == my_uid:
             # reply to bot
-            suffix_word = random.choice(suffix_words)
-            keywords = list()
-            input_words = jieba.posseg.cut(update.message.text)
-            for w in input_words:
-                if w.flag.startswith('v'):
-                    keywords.append(w.word)
+            if update.message.text:
+                suffix_word = random.choice(suffix_words)
+                keywords = list()
+                input_words = jieba.posseg.cut(update.message.text)
+                for w in input_words:
+                    if w.flag.startswith('v'):
+                        keywords.append(w.word)
 
-            if keywords:
-                update.message.reply_text(random.choice(keywords) + suffix_word)
-            else:
-                update.message.reply_text(update.message.text + suffix_word)
+                if keywords:
+                    update.message.reply_text(random.choice(keywords) + suffix_word)
+                else:
+                    update.message.reply_text(update.message.text + suffix_word)
+            elif update.message.sticker:
+                sticker_set = bot.get_sticker_set(update.message.sticker.set_name)
+                reply_sticker = random.choice(sticker_set.stickers)
+                update.message.reply_sticker(reply_sticker)
     elif update.message.forward_from:
         if update.message.forward_from.id == my_uid:
             # forward words of bot
             suffix_word = random.choice(suffix_words)
             update.message.reply_text('Forward' + suffix_word)
+
+
     elif random.random() <= group_settings[update.message.chat.id]:
         # normal mode
         suffix_word = random.choice(suffix_words)
@@ -111,7 +118,7 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('test', test))
     updater.dispatcher.add_handler(CommandHandler('setp', set, pass_args=True))
     updater.dispatcher.add_handler(CommandHandler('getp', get))
-    updater.dispatcher.add_handler(MessageHandler(Filters.text & Filters.group, gepi))
+    updater.dispatcher.add_handler(MessageHandler((Filters.text | Filters.sticker) & Filters.group, gepi))
     global my_uid
     my_uid = updater.bot.get_me().id
     updater.start_polling()
