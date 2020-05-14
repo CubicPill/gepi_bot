@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import random
-import json
 from threading import Lock
 
 import jieba.posseg
@@ -15,24 +14,19 @@ suffix_words = ['个屁', '个头', '个几把', '个鬼', '个卵']
 my_uid = 0
 group_settings = dict()
 settings_lock = Lock()
-
-f = open('./data.json', 'r')
-data = json.load(f)
-f.close()
+character_replacement_data = dict()
 
 
 def test(bot, update):
     update.message.reply_text(random.choice(['测个屁', '测个头']))
 
 
-def fudu(_input):
-    _output = ''
-    for char in _input:
-        if char in data:
-            _output += data.get(char)
-        else:
-            _output += char
-    return _output
+def generate_repeat_text(text):
+    output = ''
+    for char in text:
+        replacement = character_replacement_data.get(char)
+        output += replacement if replacement else char
+    return output
 
 
 def set(bot, update, args):
@@ -43,7 +37,7 @@ def set(bot, update, args):
         update.message.reply_text('Only available in group chats')
         return
     try:
-        new_p = round(float('0' + args[0]), 2)
+        new_p = round(float('0' + args[0]), 6)
         if new_p > 1:
             new_p = 1
         if new_p < 0:
@@ -53,7 +47,7 @@ def set(bot, update, args):
         return
     group_settings[update.message.chat.id] = new_p
     save_settings()
-    update.message.reply_text('Success! P = {0:.2f}'.format(new_p))
+    update.message.reply_text('Success! P = {0:.6f}'.format(new_p))
 
 
 def get(bot, update):
@@ -107,7 +101,7 @@ def gepi(bot, update):
             if keywords:
                 update.message.reply_text(random.choice(keywords) + suffix_word)
         else:
-            update.message.reply_text(fudu(update.message.text))
+            update.message.reply_text(generate_repeat_text(update.message.text), quote=False)
     print(update.message.chat.id, update.message.chat.title, update.message.from_user.id,
           update.message.from_user.full_name)
 
@@ -115,11 +109,17 @@ def gepi(bot, update):
 def load_settings():
     with settings_lock:
         global group_settings
-        if not os.path.isfile('settings.json'):
-            return {}
+        global character_replacement_data
+        if os.path.isfile('char_replace_data.json'):
+            with open('char_replace_data.json') as f:
+                character_replacement_data = json.load(f)
         else:
+            print('ERROR: char_replace_data.json does not exist')
+        if os.path.isfile('settings.json'):
             with open('settings.json') as f:
                 group_settings = json.load(f)
+        else:
+            print('ERROR: settings.json does not exist')
 
 
 def save_settings():
