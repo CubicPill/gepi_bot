@@ -106,8 +106,8 @@ def gepi(bot, update):
 
             if keywords:
                 update.message.reply_text(random.choice(keywords) + suffix_word)
-            else:
-                update.message.reply_text(fudu(update.message.text))
+        else:
+            update.message.reply_text(fudu(update.message.text))
     print(update.message.chat.id, update.message.chat.title, update.message.from_user.id,
           update.message.from_user.full_name)
 
