@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import random
+import json
 from threading import Lock
 
 import jieba.posseg
@@ -15,9 +16,23 @@ my_uid = 0
 group_settings = dict()
 settings_lock = Lock()
 
+f = open('./data.json', 'r')
+data = json.load(f)
+f.close()
+
 
 def test(bot, update):
     update.message.reply_text(random.choice(['测个屁', '测个头']))
+
+
+def fudu(_input):
+    _output = ''
+    for char in _input:
+        if char in data:
+            _output += data.get(char)
+        else:
+            _output += char
+    return _output
 
 
 def set(bot, update, args):
@@ -79,18 +94,20 @@ def gepi(bot, update):
             suffix_word = random.choice(suffix_words)
             update.message.reply_text('Forward' + suffix_word)
 
-
     elif random.random() <= group_settings[update.message.chat.id]:
         # normal mode
-        suffix_word = random.choice(suffix_words)
-        keywords = list()
-        input_words = jieba.posseg.cut(update.message.text)
-        for w in input_words:
-            if w.flag.startswith('v') or w.flag.startswith('a') or w.flag == 'i':
-                keywords.append(w.word)
+        if random.random() < 0.5:
+            suffix_word = random.choice(suffix_words)
+            keywords = list()
+            input_words = jieba.posseg.cut(update.message.text)
+            for w in input_words:
+                if w.flag.startswith('v') or w.flag.startswith('a') or w.flag == 'i':
+                    keywords.append(w.word)
 
-        if keywords:
-            update.message.reply_text(random.choice(keywords) + suffix_word)
+            if keywords:
+                update.message.reply_text(random.choice(keywords) + suffix_word)
+            else:
+                update.message.reply_text(fudu(update.message.text))
     print(update.message.chat.id, update.message.chat.title, update.message.from_user.id,
           update.message.from_user.full_name)
 
