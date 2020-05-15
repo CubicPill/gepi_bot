@@ -100,7 +100,7 @@ def reply_mention(update, context):
 
 
 def reply_reply(update, context):
-    if update.message.reply_to_message.from_user.id != bot_info.id or not update.message.text:
+    if update.message.reply_to_message.from_user.id != bot_info.id:
         return
     # reply to message replied to bot
     suffix_word = random.choice(suffix_words)
@@ -125,6 +125,8 @@ def reply_forward(update, context):
 
 
 def reply_sticker(update, context):
+    if update.message.reply_to_message.from_user.id != bot_info.id:
+        return
     # reply to stickers replied to bot
     sticker_set = context.bot.get_sticker_set(update.message.sticker.set_name)
     sticker = random.choice(sticker_set.stickers)
@@ -161,8 +163,8 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('test', test))
     updater.dispatcher.add_handler(CommandHandler('setp', set, pass_args=True))
     updater.dispatcher.add_handler(CommandHandler('getp', get))
-    updater.dispatcher.add_handler(MessageHandler(Filters.sticker & Filters.group, reply_sticker))
-    updater.dispatcher.add_handler(MessageHandler(Filters.reply & Filters.group, reply_reply))
+    updater.dispatcher.add_handler(MessageHandler(Filters.reply & Filters.sticker & Filters.group, reply_sticker))
+    updater.dispatcher.add_handler(MessageHandler(Filters.reply & Filters.text & Filters.group, reply_reply))
     updater.dispatcher.add_handler(MessageHandler(Filters.forwarded & Filters.group, reply_forward))
     updater.dispatcher.add_handler(MessageHandler(Filters.entity(MessageEntity.MENTION) & Filters.group, reply_mention))
     updater.dispatcher.add_handler(MessageHandler(Filters.text & Filters.group, process_message))
